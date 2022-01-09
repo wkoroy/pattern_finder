@@ -9,7 +9,6 @@
 #include <filesystem>
 #include <cstring>
 
-//g++  -o ./trading_que ./trading_que.cpp  -std=c++14
 using pattern_func = std::function<size_t(double *ptr_val, time_t *ptr_timestamps, size_t size)>;
 
 std::vector<std::string> split(std::string str, std::string token)
@@ -79,13 +78,6 @@ public:
         }
         offsets_.back().size += v.size() % thread_count;
         std::cout << " offset  + " << v.size() % thread_count << std::endl;
-        int thid = 0;
-        //for(const auto &v: offsets_) {
-        //   std::cout<< "thr = "<<   thid++<<std::endl;
-        //   for(size_t i=0;i<v.size;++i) {
-        //        std::cout<< " v= "<<  v.pr[i]<<std::endl;
-        //   }
-        // }
     }
 
     std::vector<PriceTimestampSz> GetOffsets()
@@ -127,7 +119,7 @@ int main(int argc, char **argv)
         std::vector<char> data;
         data.resize(size);
         fprice.read(data.data(), size);
-         std::cout << " load to memory \n";
+        std::cout << " load to memory \n";
         size_t prev_begin = 0;
         for (size_t i = 0; i < data.size(); ++i)
         {
@@ -146,19 +138,6 @@ int main(int argc, char **argv)
             }
         }
         data.clear();
-
-#if 0
-        std::string crs;
-        double delta = 0;
-        while(!fprice.eof())
-        {
-            fprice >> crs;
-           
-
-            //std::cout<<pr_q.back() <<"  "<< times.back()<<"\n";
-
-        }
-#endif
         std::cout << " loaded " << times.size() << "\n";
         size_t window = 900;
         Distributor ds(pr_q, times, window, 4);
@@ -174,16 +153,6 @@ int main(int argc, char **argv)
             for (size_t i = 0; i < size - window + 1; ++i)
             {
                 avg = std::accumulate(&ptr_val[i], &ptr_val[i + window], 0.0) / window;
-
-#if 0
-                for (size_t v=i;v<i+window;++v) {
-                     result.push_back(ptr_val[v] );
-                     //std::cout<<i<<"  _"<<ptr_val[v] <<"\n";
-                }
-               
-                //std::cout<<"\n";
-                //result.push_back(avg);//max_q / tokenPrice - 1.0
-#endif
                 result.push_back(avg / ptr_val[i + window - 1] - 1.0); //max_q / tokenPrice - 1.0
             }
             return result;
@@ -193,34 +162,12 @@ int main(int argc, char **argv)
 
         int thid = 0;
 
-#if 0
-      std::ofstream resma("smares.txt");
-      for (const PriceTimestampSz &t:thread_datas) {
-            //ftres.push_back(std::async(std::launch::deferred, sma , t.pr, t.tm, t.size));
-            //ftres.back().wait();
-            //std::cout<<"thid "<<thid++<<"\n";
-            //sma(t.pr, t.tm, t.size);
-        auto  vec = sma (t.pr, t.tm, t.size);
-        for (auto & ft: vec) {
-              resma<<ft<<"\n";
-           }
-         //std::cout<< "_ thr = "<<   thid++<<std::endl;
-         // for(size_t i=0;i<t.size;++i) {
-         //      std::cout<< " _v= "<<  t.pr[i]<<std::endl;
-         // }
-        }
-
-#else
         for (const PriceTimestampSz &t : thread_datas)
         {
             ftres.push_back(std::async(std::launch::async, sma, t.pr, t.tm, t.size));
             std::cout << "  newthread \n";
-            //ftres.back().wait();
-            //std::cout<<"thid "<<thid++<<"\n";
-            //sma(t.pr, t.tm, t.size);
         }
 
-        //std::this_thread::sleep_for(std::chrono::seconds(26));
         std::ofstream resma("smares.txt");
         for (int i = 0; i < ftres.size(); ++i)
         {
@@ -231,24 +178,5 @@ int main(int argc, char **argv)
                 resma << ft << "\n";
             }
         }
-
-#endif
-
-        /*std::ofstream resma("smares.txt");
-       for(size_t i=0;i<ftres.size();++i) {
-            std::cout<<" thread res save  "<<i<<"\n";
-           auto vec = ftres[i].get();
-           for (auto & ft: vec) {
-              resma<<ft<<"\n";
-           }
-
-       }*/
-        // for (auto && ft: ftres) {
-
-        //ft.get();
-        //  std::cout<<ft.get().size()<<"\n";
-        // }
-
-        //std::future<std::vector<double>> res = std::async(std::launch::async, sma , "Data");
     }
 }
